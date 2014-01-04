@@ -21,6 +21,11 @@ class Result(object):
 
 class IdeoneError(Exception):
     pass
+    
+class LanguageNotFoundError(IdeoneError):
+    def __init__(self, message, similar_languages):
+        IdeoneError.__init__(self, message)
+        self.similar_languages = similar_languages
 
 class Ideone(object):
 
@@ -132,9 +137,12 @@ class Ideone(object):
         # output
         similar_choices_string = ", ".join(["'" + s + "'"
                                             for s in similar_choices])
-        error_string = ("Couldn't match '%s' to an Ideone accepted language.\n"
-                        "Did you mean one of the following: %s")
-        raise IdeoneError(error_string % (language_name, similar_choices_string))
+        error_string = ("Couldn't match '{lang}' to an Ideone accepted language.\n"
+                        "Did you mean one of the following: {choices}").format(
+                        lang=language_name, choices=similar_choices_string)
+        new_error = LanguageNotFoundError(error_string, similar_choices)
+        new_error.similar_choices = similar_choices_string
+        raise new_error
         
 
 
